@@ -1,0 +1,324 @@
+body {
+  border: 0;
+  padding: 0;
+  width: 100%;
+  color: #333;
+  margin: auto;
+  font-size: 13px;
+  font-family: system-ui, sans-serif;
+}
+
+.container {
+  border: 0;
+  width: 100%;
+  margin: auto;
+  padding: 5px;
+  outline: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.container .content {
+  gap: 5px;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  margin: auto;
+  display: flex;
+  flex-flow: row;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+}
+
+.container .content .useraction {
+  border: 0;
+  width: 80%;
+  outline: none;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 10px);
+}
+
+.container .content .useraction #userarea {
+  color: #333;
+}
+
+.container .content .useraction #userarea,
+.container .content .useraction #userinput {
+  top: 0;
+  left: 0;
+  width: 100%;
+  outline: none;
+  font-size: 16px;
+  overflow-y: auto;
+  padding: 5px 10px;
+  line-height: 32px;
+  overflow-x: hidden;
+  position: absolute;
+  text-align: justify;
+  box-sizing: border-box;
+  white-space: break-spaces;
+  height: calc(100vh - 10px);
+  font-family: system-ui, sans-serif;
+  border: solid 1px rgba(0, 0, 0, 0.1);
+}
+
+.container .content .useraction #userarea {
+  resize: none;
+  background-color: transparent;
+}
+
+.container .content .useraction #userinput {
+  color: transparent;
+  pointer-events: none;
+}
+
+.container .content .useraction #userinput .highlight {
+  padding: 3px 0;
+  cursor: pointer;
+  border-radius: 0;
+  pointer-events: auto;
+  border-bottom: 2px solid #ff0000;
+  transition: 300ms ease color, 300ms ease background-color;
+}
+
+.container .content .useraction #userinput .highlight:hover {
+  color: #000;
+  background-color: #ffd600;
+}
+
+.container .content .useraction #userinput .highlight.selected {
+  color: #333;
+  background-color: #ffd600;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.container .content .suggestions {
+  width: 20%;
+  padding: 0;
+  font-size: 14px;
+  overflow: hidden;
+  height: calc(100vh - 12px);
+  border: 1px solid rgba(0, 0, 0, 0.20);
+}
+
+.container .content .suggestions > .title {
+  border: 0;
+  width: 100%;
+  color: #333;
+  height: 42px;
+  margin: 0 auto;
+  font-size: 14px;
+  overflow: hidden;
+  line-height: 44px;
+  user-select: none;
+  text-indent: 42px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background-image: url('./resources/icon-light.png');
+  background-repeat: no-repeat;
+  background-position-x: 16px;
+  background-position-y: 14px;
+  background-size: 18px;
+}
+
+.container .content .suggestions .suggestion-box {
+  gap: 5px;
+  margin: 0;
+  padding: 5px;
+  display: flex;
+  flex-flow: column;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-right: 7px;
+  align-items: center;
+  height: calc(100% - 95px);
+  justify-content: flex-start;
+  min-height: calc(100% - 95px);
+  border-top: solid 1px rgba(0, 0, 0, 0.15);
+}
+
+.container .content .suggestions .suggestion-box:has(.loader) {
+  justify-content: center;
+}
+
+.container .content .suggestions .suggestion-box > svg {
+  fill: #333;
+  display: none;
+  pointer-events: none;
+  vertical-align: middle;
+}
+
+.container .content .suggestions .suggestion-box > div {
+  width: 100%;
+  height: 38px;
+  margin: 0 auto;
+  cursor: pointer;
+  overflow: hidden;
+  min-height: 38px;
+  line-height: 38px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: 300ms ease border;
+  border: solid 1px transparent;
+  border-left: solid 2px transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+.container .content .suggestions .suggestion-box > div:not(.suggestion-button):hover {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-left-color: #60a733;
+}
+
+.container .content .suggestions .suggestion-box .reason,
+.container .content .suggestions .suggestion-box .actions {
+  display: none;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button {
+  color: #333;
+  height: 140px;
+  cursor: default;
+  transition: none;
+  min-height: 140px;
+  max-height: 140px;
+  border-color: transparent;
+  outline: solid 1px rgba(0, 0, 0, 0.25);
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .title,
+.container .content .suggestions .suggestion-box .suggestion-button .reason,
+.container .content .suggestions .suggestion-box .suggestion-button .actions {
+  margin: 5px auto;
+}
+
+.container .content .suggestions .suggestion-box .title {
+  font-weight: 600;
+  text-indent: 5px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .title {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .reason {
+  display: block;
+  overflow: hidden;
+  text-indent: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .actions .accept,
+.container .content .suggestions .suggestion-box .suggestion-button .actions .dismiss {
+  margin: 0;
+  padding: 0;
+  width: 92px;
+  text-indent: 0;
+  cursor: pointer;
+  border-radius: 3px;
+  text-align: center;
+  transition: 300ms ease background-color;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .actions .accept {
+  color: #fff;
+  background-color: #60a733;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .actions .dismiss {
+  color: #333;
+  background-color: #ffffff;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .actions .accept:hover {
+  background-color: #5ca130;
+}
+
+.container .content .suggestions .suggestion-box .suggestion-button .actions .dismiss:hover {
+  background-color: #ededed;
+}
+
+.container .content .suggestions .toolbar {
+  border: 0;
+  padding: 0;
+  margin: auto;
+}
+
+.container .content .suggestions .toolbar table {
+  width: 100%;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.container .content .suggestions .toolbar table tr td {
+  padding: 0;
+  width: auto;
+  color: #555;
+  height: 42px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  transition: 300ms ease background-color;
+}
+
+.container .content .suggestions .toolbar table tr td svg {
+  fill: #555;
+  margin-top: -3px;
+  pointer-events: none;
+  vertical-align: middle;
+}
+
+.container .content .suggestions .toolbar table tr td:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.container .content .footer {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 300px;
+  display: none;
+  position: fixed;
+  background-color: #fff;
+}
+
+.container .content .footer .error {
+  width: 100%;
+  height: 100%;
+  margin: 5px auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 10px 0 5px 28px;
+  border: solid 1px rgba(0, 0, 0, 0.25);
+}
+
+.container .content .footer .error li {
+  color: #333;
+  height: 24px;
+  font-size: 13px;
+  line-height: 24px;
+  font-family: system-ui, sans-serif;
+}
+
+html[context='webapp'] .container .content .suggestions .toolbar #reload,
+html[context='webapp'] .container .content .suggestions .toolbar #support,
+html[context='webapp'] .container .content .suggestions .toolbar #donation {
+  display: none;
+}

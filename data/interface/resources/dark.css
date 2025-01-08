@@ -1,0 +1,47 @@
+html[mode='dark'] {
+  color-scheme: dark;
+}
+
+html[mode='dark'] body {
+  background-color: #313131;
+}
+
+html[mode='dark'] .container .content .useraction #userinput .highlight:hover,
+html[mode='dark'] .container .content .useraction #userinput .highlight.selected {
+  color: #000;
+}
+
+html[mode='dark'] .container .content .suggestions,
+html[mode='dark'] .container .content .useraction #userarea,
+html[mode='dark'] .container .content .suggestions .suggestion-box {
+  border-color: rgb(255 255 255 / 25%);
+}
+
+html[mode='dark'] body,
+html[mode='dark'] .container .content .suggestions > .title,
+html[mode='dark'] .container .content .useraction #userarea,
+html[mode='dark'] .container .content .suggestions .suggestion-box .suggestion-button {
+  color: #fff;
+}
+
+html[mode='dark'] .container .content .suggestions .suggestion-box > div {
+  border-bottom-color: rgb(255 255 255 / 15%);
+}
+
+html[mode='dark'] .container .content .suggestions .suggestion-box > div:not(.suggestion-button):hover {
+  border-color: rgb(255 255 255 / 25%);
+  border-left-color: #60a733;
+}
+
+html[mode='dark'] .container .content .suggestions .suggestion-box .suggestion-button {
+  outline-color: rgb(255 255 255 / 10%);
+}
+
+html[mode='dark'] .container .content .suggestions .suggestion-box > svg,
+html[mode='dark'] .container .content .suggestions .toolbar table tr td svg {
+  fill: #fff;
+}
+
+html[mode='dark'] .container .content .suggestions > .title {
+  background-image: url('./icon-dark.png');
+}

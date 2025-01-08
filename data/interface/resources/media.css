@@ -1,0 +1,36 @@
+@media (max-width: 1600px) {
+  .container .content .useraction {
+    width: 75%;
+  }
+  .container .content .suggestions {
+    width: 25%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .container .content .useraction {
+    width: 70%;
+  }
+  .container .content .suggestions {
+    width: 30%;
+  }
+}
+
+@media (max-width: 800px) {
+  .container .content .useraction {
+    width: 60%;
+  }
+  .container .content .suggestions {
+    width: 40%;
+  }
+}
+
+@media (max-width: 400px) {
+  .container .content .suggestions .toolbar {
+    display: none;
+  }
+  .container .content .suggestions > .title {
+    text-indent: 12px;
+    background-image: none !important;
+  }
+}

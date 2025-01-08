@@ -1,0 +1,37 @@
+{
+  "version": "0.1.0",
+  "manifest_version": 3,
+  "offline_enabled": true,
+  "name": "Grammar Checker (Offline)",
+  "homepage_url": "https://mybrowseraddon.com/grammar-checker.html",
+  "description": "Check English grammar quickly and completely offline.",
+  "commands": {
+    "_execute_action": {}
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "permissions": [
+    "storage", 
+    "contextMenus"
+  ],
+  "action": {
+    "default_title": "Grammar Checker (Offline)",
+    "default_icon": {
+      "16": "data/icons/16.png",
+      "32": "data/icons/32.png",
+      "48": "data/icons/48.png",
+      "64": "data/icons/64.png"
+    }
+  },
+  "icons": {
+    "16": "data/icons/16.png",
+    "32": "data/icons/32.png",
+    "48": "data/icons/48.png",
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png"
+  }
+}
