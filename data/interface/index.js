@@ -10,6 +10,25 @@ var config  = {
       e.preventDefault();
     }
   },
+  "scroll": {
+    "id": null,
+    "to": {
+      "top": function (e) {
+        const _step = function () {
+          const c = e.scrollTop;
+          const threshold = Math.floor(Math.max(5, c / 8));
+          if (c > threshold) {
+            e.scrollTop = c - c / 8;
+            config.scroll.id = requestAnimationFrame(_step);
+          } else {
+            e.scrollTop = 0;
+            cancelAnimationFrame(config.scroll.id);
+          }
+        }
+        _step();
+      }
+    }
+  },
   "resize": {
     "timeout": null,
     "method": function () {
@@ -83,6 +102,7 @@ var config  = {
     const dark = document.getElementById("dark");
     const copy = document.getElementById("copy");
     const start = document.getElementById("start");
+    const clear = document.getElementById("clear");
     const accept = document.getElementById("accept");
     const reload = document.getElementById("reload");
     const support = document.getElementById("support");
@@ -130,25 +150,16 @@ var config  = {
       config.storage.write("mode", mode);
     });
     /*  */
-    accept.addEventListener("click", async function () {
-      const flag = window.confirm("Do you want to accept all suggestions?");
-      if (flag) {
-        const suggestions = document.querySelector(".suggestions .suggestion-box");
-        const count = [...suggestions.querySelectorAll("[replacement]")].length;
+    clear.addEventListener("click", async function () {
+      const action = window.confirm("Do you want to clear the interface? All text will be lost.");
+      if (action) {
+        userarea.value = '';
+        userinput.textContent = '';
+        await config.app.listener.input({"target": userarea});
         /*  */
-        for (let i = 0; i < count; i++) {
-          const replacement = suggestions.querySelector("[replacement]");
-          if (replacement) {
-            replacement.click();
-            await new Promise(resolve => window.setTimeout(resolve, 300));
-            await config.app.listener.button.accept({
-              "isTrusted": false,
-              "target": replacement.querySelector(".actions .accept")
-            });
-          }
-        }
+        document.location.reload();
       }
-    });
+    }, false);
     /*  */
     userarea.addEventListener("drop", function (e) {
       if (e.dataTransfer) {
@@ -169,6 +180,45 @@ var config  = {
         } else {
           window.alert("Please drop a valid .txt file and try again!");
         }
+      }
+    });
+    /*  */
+    accept.addEventListener("click", async function () {
+      const flag = window.confirm("Do you want to accept all suggestions?");
+      if (flag) {
+        const user = document.querySelector("#userinput");
+        const suggestions = document.querySelector(".suggestions .suggestion-box");
+        const count = [...suggestions.querySelectorAll("[replacement]")].length;
+        /*  */
+        config.scroll.to.top(user);
+        await new Promise(resolve => window.setTimeout(resolve, 300));
+        /*  */
+        for (let i = 0; i < count; i++) {
+          const replacement = suggestions.querySelector("[replacement]");
+          if (replacement) {
+            replacement.click();
+            await new Promise(resolve => window.setTimeout(resolve, 300));
+            /*  */
+            const selected = user.querySelector(".highlight.selected");
+            if (selected) {
+              selected.scrollIntoView({"block": "center"});
+            }
+            /*  */
+            if (replacement.querySelector(".manual")) {
+              await config.app.listener.button.dismiss({
+                "isTrusted": false,
+                "target": replacement.querySelector(".actions .dismiss")
+              });
+            } else {
+              await config.app.listener.button.accept({
+                "isTrusted": false,
+                "target": replacement.querySelector(".actions .accept")
+              });
+            }
+          }
+        }
+        /*  */
+        config.scroll.to.top(user);
       }
     });
     /*  */
@@ -195,9 +245,11 @@ var config  = {
       document.documentElement.setAttribute("mode", mode !== undefined ? mode : "light");
       /*  */
       const module = await import(harper);
-      config.app.worker = new module.WorkerLinter();
+      const options = {"binary": module.binaryInlined};
+      config.app.worker = new module.WorkerLinter(options);
       await config.app.listener.input({"target": userarea});
       await new Promise(resolve => window.setTimeout(resolve, 300));
+      /*  */
       if (loader) loader.style.display = "none";
       /*  */
       userarea.addEventListener("input", function (e) {
@@ -242,21 +294,21 @@ var config  = {
       "input": async function (e) {
         if (e.target) {
           const suggestions = document.querySelector(".suggestions .suggestion-box");
+          const userinput = document.getElementById("userinput");
           const loader = suggestions.querySelector("svg");
           /*  */
           config.storage.write("usertext", e.target.value);
           /*  */
           if (e.target.value) {
             try {
-              const userinput = document.getElementById("userinput");
               const error = document.querySelector(".container .footer .error");
               /*  */
               if (loader) loader.style.display = "block";
               userinput.textContent = e.target.value;
+              config.app.current.source = userinput.textContent;
               /*  */
               const cursor = e.target.selectionStart;
-              const usertext = userinput.textContent;
-              const lints = await config.app.worker.lint(usertext);
+              const lints = await config.app.worker.lint(config.app.current.source);
               /*  */
               error.textContent = '';
               suggestions.textContent = '';
@@ -270,6 +322,7 @@ var config  = {
               e.target.setSelectionRange(cursor, cursor);
             } catch (e) {
               if (loader) loader.style.display = "none";
+              if (e && e.message) window.alert(e.message);
             }
           }
         }
@@ -313,6 +366,7 @@ var config  = {
                 target.remove();
                 userarea.value = newtext;
                 userinput.textContent = newtext;
+                config.app.current.source = newtext;
                 await config.app.listener.input({"target": userarea});
                 await new Promise(resolve => window.setTimeout(resolve, 300));
               }
@@ -387,74 +441,80 @@ var config  = {
         }
       },
       "highlight": function (lint) {
-        const current = {};
-        const highlight = {};
-        const object = lint.to_json();
-        const message = lint.message();
-        const suggestions = document.querySelector(".suggestions .suggestion-box");
-        /*  */
-        current.index = {};
-        current.result = JSON.parse(object).inner;
-        current.index.end = current.result.span.end;
-        current.priority = JSON.parse(object).priority;
-        current.index.start = current.result.span.start;
-        config.app.current.source = JSON.parse(object).source.join('');
-        highlight.startend = current.index.start + ':' + current.index.end;
-        /*  */
-        if (config.app.current.dismiss.indexOf(highlight.startend) === -1) {
-          highlight.target = config.app.current.source.substring(current.index.start, current.index.end);
-          highlight.node = document.createTextNode(highlight.target);
-          highlight.suggestions = current.result.suggestions;
-          highlight.span = document.createElement("span");
+        try {
+          const current = {};
+          const highlight = {};
+          const message = lint.message();
+          const problem = lint.get_problem_text();
+          const object = JSON.parse(lint.to_json());
+          const suggestions = document.querySelector(".suggestions .suggestion-box");
           /*  */
-          highlight.span.className = "highlight";
-          highlight.span.appendChild(highlight.node);
-          highlight.span.setAttribute("startend", highlight.startend);
-          highlight.span.addEventListener("click", config.app.listener.highlight);
-          highlight.span.style.borderColor = config.app.methods.color(current.result.priority);
-          config.app.methods.insert.span(current.index.start, current.index.end, highlight.span);
+          current.index = {};
+          current.problem = problem;
+          current.inner = object.inner;
+          current.priority = current.inner.priority;
+          current.index.end = current.inner.span.end;
+          current.index.start = current.inner.span.start;
+          current.startend = current.index.start + ':' + current.index.end;
+          current.target = config.app.current.source.substring(current.index.start, current.index.end);
           /*  */
-          for (let i = 0; i < highlight.suggestions.length; i++) {
-            const alternatives = highlight.suggestions[i].ReplaceWith;
-            const replacement = alternatives.join('');
-            const kind = current.result.lint_kind;
+          if (config.app.current.dismiss.indexOf(current.startend) === -1) {
+            highlight.target = current.problem ? current.problem : current.target;
+            highlight.node = document.createTextNode(highlight.target);
+            highlight.suggestions = current.inner.suggestions.length ? current.inner.suggestions : [{"ReplaceWith": [current.problem]}];
+            highlight.span = document.createElement("span");
             /*  */
-            const title = document.createElement("div");
-            const button = document.createElement("div");
-            const reason = document.createElement("div");
-            const accept = document.createElement("div");
-            const actions = document.createElement("div");
-            const dismiss = document.createElement("div");
+            highlight.span.className = "highlight";
+            highlight.span.appendChild(highlight.node);
+            highlight.span.setAttribute("startend", current.startend);
+            highlight.span.addEventListener("click", config.app.listener.highlight);
+            highlight.span.style.borderColor = config.app.methods.color(current.inner.priority);
+            config.app.methods.insert.span(current.index.start, current.index.end, highlight.span);
             /*  */
-            button.title = message;
-            title.className = "title";
-            reason.className = "reason";
-            accept.className = "accept";
-            reason.textContent = message
-            accept.textContent = "Accept";
-            actions.className = "actions";
-            dismiss.className = "dismiss";
-            dismiss.textContent = "Dismiss";
-            title.textContent = kind + " - " + replacement;
-            button.setAttribute("replacement", replacement);
-            button.setAttribute("startend", highlight.startend);
-            button.addEventListener("click", config.app.listener.highlight);
-            accept.addEventListener("click", config.app.listener.button.accept);
-            dismiss.addEventListener("click", config.app.listener.button.dismiss);
+            for (let i = 0; i < highlight.suggestions.length; i++) {
+              const alternatives = highlight.suggestions[i].ReplaceWith;
+              const replacement = alternatives.join('');
+              const kind = current.inner.lint_kind;
+              /*  */
+              const title = document.createElement("div");
+              const button = document.createElement("div");
+              const reason = document.createElement("div");
+              const accept = document.createElement("div");
+              const actions = document.createElement("div");
+              const dismiss = document.createElement("div");
+              /*  */
+              button.title = message;
+              title.className = "title";
+              reason.className = "reason";
+              accept.className = current.inner.suggestions.length ? "accept" : "accept manual";
+              reason.textContent = current.inner.suggestions.length ? message : message + " Please review and correct manually."
+              accept.textContent = "Accept";
+              actions.className = "actions";
+              dismiss.className = "dismiss";
+              dismiss.textContent = "Dismiss";
+              title.textContent = kind + " - " + replacement;
+              button.setAttribute("replacement", replacement);
+              button.setAttribute("startend", current.startend);
+              button.addEventListener("click", config.app.listener.highlight);
+              accept.addEventListener("click", config.app.listener.button.accept);
+              dismiss.addEventListener("click", config.app.listener.button.dismiss);
+              /*  */
+              button.appendChild(title);
+              button.appendChild(reason);
+              actions.appendChild(accept);
+              actions.appendChild(dismiss);
+              button.appendChild(actions);
+              suggestions.appendChild(button);
+            }
             /*  */
-            button.appendChild(title);
-            button.appendChild(reason);
-            actions.appendChild(accept);
-            actions.appendChild(dismiss);
-            button.appendChild(actions);
-            suggestions.appendChild(button);
+            const item = document.createElement("li");
+            const error = document.querySelector(".container .footer .error");
+            const text = document.createTextNode(message);
+            item.appendChild(text);
+            error.appendChild(item);
           }
-          /*  */
-          const item = document.createElement("li");
-          const error = document.querySelector(".container .footer .error");
-          const text = document.createTextNode(message);
-          item.appendChild(text);
-          error.appendChild(item);
+        } catch (e) {
+          if (e && e.message) window.alert(e.message);
         }
       }
     }
