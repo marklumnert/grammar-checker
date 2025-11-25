@@ -1,4 +1,5 @@
 var config  = {
+  "elements": {},
   "addon": {
     "homepage": function () {
       return chrome.runtime.getManifest().homepage_url;
@@ -61,8 +62,8 @@ var config  = {
             if (document.location.search === "?popup") config.port.name = "popup";
             /*  */
             if (config.port.name === "popup") {
-              document.documentElement.style.width = "780px";
-              document.documentElement.style.height = "550px";
+              document.documentElement.style.width = "790px";
+              document.documentElement.style.height = "590px";
             }
             /*  */
             chrome.runtime.connect({"name": config.port.name});
@@ -99,50 +100,60 @@ var config  = {
     }
   },
   "load": function () {
-    const dark = document.getElementById("dark");
-    const copy = document.getElementById("copy");
-    const start = document.getElementById("start");
-    const clear = document.getElementById("clear");
-    const accept = document.getElementById("accept");
-    const reload = document.getElementById("reload");
-    const support = document.getElementById("support");
-    const donation = document.getElementById("donation");
-    const userarea = document.getElementById("userarea");
-    const userinput = document.getElementById("userinput");
+    config.elements.root = document.documentElement;
+    config.elements.dark = document.getElementById("dark");
+    config.elements.copy = document.getElementById("copy");
+    config.elements.start = document.getElementById("start");
+    config.elements.clear = document.getElementById("clear");
+    config.elements.accept = document.getElementById("accept");
+    config.elements.reload = document.getElementById("reload");
+    config.elements.support = document.getElementById("support");
+    config.elements.builtin = document.getElementById("builtin");
+    config.elements.download = document.getElementById("download");
+    config.elements.donation = document.getElementById("donation");
+    config.elements.userarea = document.getElementById("userarea");
+    config.elements.userinput = document.getElementById("userinput");
+    config.elements.logs = document.querySelector(".container .footer .logs");
+    config.elements.loader = document.querySelector(".suggestions .suggestion-box svg");
+    config.elements.suggestions = document.querySelector(".suggestions .suggestion-box");
     /*  */
-    userarea.addEventListener("scroll", function () {
-      userinput.scrollTop = userarea.scrollTop;
+    config.elements.download.addEventListener("click", async function () {
+      await config.app.methods.download.training.data();
     });
     /*  */
-    userinput.addEventListener("scroll", function () {
-      userarea.scrollTop = userinput.scrollTop;
+    config.elements.userarea.addEventListener("scroll", function () {
+      config.elements.userinput.scrollTop = config.elements.userarea.scrollTop;
     });
     /*  */
-    reload.addEventListener("click", function () {
+    config.elements.userinput.addEventListener("scroll", function () {
+      config.elements.userarea.scrollTop = config.elements.userinput.scrollTop;
+    });
+    /*  */
+    config.elements.reload.addEventListener("click", function () {
       document.location.reload();
     }, false);
     /*  */
-    start.addEventListener("click", async function () {
-      await config.app.listener.input({"target": userarea});
+    config.elements.start.addEventListener("click", async function () {
+      await config.app.listener.input({"target": config.elements.userarea}, true);
     }, false);
     /*  */
-    support.addEventListener("click", function () {
+    config.elements.support.addEventListener("click", function () {
       const url = config.addon.homepage();
       chrome.tabs.create({"url": url, "active": true});
     }, false);
     /*  */
-    donation.addEventListener("click", function () {
+    config.elements.donation.addEventListener("click", function () {
       const url = config.addon.homepage() + "?reason=support";
       chrome.tabs.create({"url": url, "active": true});
     }, false);
     /*  */
-    copy.addEventListener("click", function () {
-      navigator.clipboard.writeText(userarea.value).then(() => {
-        userarea.select();
+    config.elements.copy.addEventListener("click", function () {
+      navigator.clipboard.writeText(config.elements.userarea.value).then(() => {
+        config.elements.userarea.select();
       });
     });
     /*  */
-    dark.addEventListener("click", function () {
+    config.elements.dark.addEventListener("click", function () {
       let mode = document.documentElement.getAttribute("mode");
       /*  */
       mode = mode === "dark" ? "light" : "dark";
@@ -150,18 +161,33 @@ var config  = {
       config.storage.write("mode", mode);
     });
     /*  */
-    clear.addEventListener("click", async function () {
+    config.elements.clear.addEventListener("click", async function () {
       const action = window.confirm("Do you want to clear the interface? All text will be lost.");
       if (action) {
-        userarea.value = '';
-        userinput.textContent = '';
-        await config.app.listener.input({"target": userarea});
+        config.elements.userarea.value = '';
+        config.elements.userinput.textContent = '';
+        await config.app.listener.input({"target": config.elements.userarea}, true);
         /*  */
         document.location.reload();
       }
     }, false);
     /*  */
-    userarea.addEventListener("drop", function (e) {
+    config.elements.builtin.addEventListener("change", async function (e) {
+      config.storage.write("builtin", e.target.checked);
+      /*  */
+      const cond_1 = window.Proofreader;
+      const cond_2 = e.target && e.target.checked;
+      const cond_3 = navigator.userActivation.isActive;
+      /*  */
+      if (cond_1 && cond_2 && cond_3) {
+        await config.app.methods.download.training.data();
+      } else {
+        await config.app.methods.wait(300);
+        document.location.reload();
+      }
+    });
+    /*  */
+    config.elements.userarea.addEventListener("drop", function (e) {
       if (e.dataTransfer) {
         e.preventDefault();
         /*  */
@@ -170,9 +196,9 @@ var config  = {
           const reader = new FileReader();
           reader.onload = async function (e) {
             if (e.target.result) {
-              userarea.value = e.target.result;
-              await new Promise(resolve => window.setTimeout(resolve, 300));
-              await config.app.listener.input({"target": userarea});
+              config.elements.userarea.value = e.target.result;
+              await config.app.methods.wait(300);
+              await config.app.listener.input({"target": config.elements.userarea}, true);
             }
           };
           /*  */
@@ -183,23 +209,21 @@ var config  = {
       }
     });
     /*  */
-    accept.addEventListener("click", async function () {
+    config.elements.accept.addEventListener("click", async function () {
       const flag = window.confirm("Do you want to accept all suggestions?");
       if (flag) {
-        const user = document.querySelector("#userinput");
-        const suggestions = document.querySelector(".suggestions .suggestion-box");
-        const count = [...suggestions.querySelectorAll("[replacement]")].length;
+        const count = [...config.elements.suggestions.querySelectorAll("[replacement]")].length;
         /*  */
-        config.scroll.to.top(user);
-        await new Promise(resolve => window.setTimeout(resolve, 300));
+        config.scroll.to.top(config.elements.userinput);
+        await config.app.methods.wait(300);
         /*  */
         for (let i = 0; i < count; i++) {
-          const replacement = suggestions.querySelector("[replacement]");
+          const replacement = config.elements.suggestions.querySelector("[replacement]");
           if (replacement) {
             replacement.click();
-            await new Promise(resolve => window.setTimeout(resolve, 300));
+            await config.app.methods.wait(300);
             /*  */
-            const selected = user.querySelector(".highlight.selected");
+            const selected = config.elements.userinput.querySelector(".highlight.selected");
             if (selected) {
               selected.scrollIntoView({"block": "center"});
             }
@@ -218,7 +242,7 @@ var config  = {
           }
         }
         /*  */
-        config.scroll.to.top(user);
+        config.scroll.to.top(config.elements.userinput);
       }
     });
     /*  */
@@ -226,33 +250,82 @@ var config  = {
     window.removeEventListener("load", config.load, false);
   },
   "app": {
-    "worker": null,
+    "highlights": [],
+    "proofreader": null,
+    "workerlinter": null,
     "current": {
       "source": '',
       "dismiss": []
     },
+    "options": {
+      "includeCorrectionTypes": true,
+      "expectedInputLanguages": ["en"],
+      "correctionExplanationLanguage": "en",
+      "includeCorrectionExplanations": true
+    },
     "start": async function () {
-      const suggestions = document.querySelector(".suggestions .suggestion-box");
-      const userarea = document.getElementById("userarea");
-      const usertext = config.storage.read("usertext");
-      const loader = suggestions.querySelector("svg");
+      const text = [];
       const mode = config.storage.read("mode");
-      const harper = "./vendor/harper.js";
+      const item = document.createElement("li");
+      const builtin = config.storage.read("builtin");
+      const usertext = config.storage.read("usertext");
       /*  */
+      config.app.highlights = [];
+      config.app.proofreader = null;
+      config.app.workerlinter = null;
+      config.app.current.source = '';
       config.app.current.dismiss = [];
-      if (loader) loader.style.display = "block";
-      if (usertext !== undefined) userarea.value = usertext;
-      document.documentElement.setAttribute("mode", mode !== undefined ? mode : "light");
+      config.elements.logs.appendChild(item);
+      config.elements.builtin.checked = builtin;
+      if (usertext !== undefined) config.elements.userarea.value = usertext;
+      if (config.elements.loader) config.elements.loader.style.display = "block";
+      config.elements.root.setAttribute("mode", mode !== undefined ? mode : "light");
       /*  */
-      const module = await import(harper);
-      const options = {"binary": module.binaryInlined};
-      config.app.worker = new module.WorkerLinter(options);
-      await config.app.listener.input({"target": userarea});
-      await new Promise(resolve => window.setTimeout(resolve, 300));
+      const module = await import(chrome.runtime.getURL("data/interface/vendor/harper.js"));
+      config.app.workerlinter = new module.WorkerLinter({"binary": module.binaryInlined});
+      item.textContent = "Harper.js is ready!";
       /*  */
-      if (loader) loader.style.display = "none";
+      if (builtin) {
+        if (window.Proofreader) {
+          const availability = await window.Proofreader.availability();
+          /*  */
+          if (availability === "downloadable") {
+            if (navigator.userActivation.isActive) {
+              config.app.methods.download.training.data();
+            } else {
+              text.push("The built-in Gemini Nano AI needs to download training data for the first time.");
+              text.push("Please mark the Gemini AI checkbox in the top-right toolbar to start downloading the training data.");
+              await config.app.methods.error.builtin(item, text);
+            }
+          } else if (availability === "available") {
+            config.app.proofreader = await window.Proofreader.create(config.app.options);
+            /*  */
+            item.textContent = "Gemini Nano AI is ready!";
+          } else {
+            text.push("The built-in Gemini Nano AI is not yet supported in this browser!");
+            text.push("Please use only Harper.js for grammar check.");
+            await config.app.methods.error.builtin(item, text);
+          }
+        } else {
+          text.push("The built-in Gemini Nano AI is not activated in your browser.");
+          text.push("Please Set the following flags to Enabled:\n");
+          text.push("chrome://flags/#proofreader-api-for-gemini-nano");
+          text.push("chrome://flags/#optimization-guide-on-device-model");
+          text.push("chrome://flags/#prompt-api-for-gemini-nano-multimodal-input");
+          text.push("\nThen, mark the Gemini AI checkbox in the top-right toolbar again to start downloading the training data.");
+          await config.app.methods.error.builtin(item, text);
+        }
+      }
       /*  */
-      userarea.addEventListener("input", function (e) {
+      await config.app.methods.wait(300);
+      item.textContent = "Grammar Checker is ready!";
+      /*  */
+      await config.app.listener.input({"target": config.elements.userarea}, true);
+      await config.app.methods.wait(300);
+      /*  */
+      if (config.elements.loader) config.elements.loader.style.display = "none";
+      /*  */
+      config.elements.userarea.addEventListener("input", function (e) {
         const a = e.inputType && e.inputType === "insertLineBreak";
         const b = e.inputType && e.inputType === "deleteContentForward";
         const c = e.inputType && e.inputType === "deleteContentBackward";
@@ -260,7 +333,7 @@ var config  = {
         const timeout = a || b || c ? 0 : 1000;
         if (config.app.listener.timeout) window.clearTimeout(config.app.listener.timeout);
         config.app.listener.timeout = window.setTimeout(async function () {
-          await config.app.listener.input(e);
+          await config.app.listener.input(e, true);
         }, timeout);
       });
     },
@@ -272,8 +345,8 @@ var config  = {
           const startend = e.target.getAttribute("startend");
           /*  */
           suggestions.targets = {};
-          suggestions.user = document.querySelector("#userinput");
-          suggestions.box = document.querySelector(".suggestions .suggestion-box");
+          suggestions.user = config.elements.userinput;
+          suggestions.box = config.elements.suggestions;
           suggestions.targets.box = [...suggestions.box.querySelectorAll("[startend]")];
           suggestions.targets.userinput = [...suggestions.user.querySelectorAll("[startend]")];
           suggestions.buttons = [...suggestions.box.querySelectorAll("[startend='" + startend + "']")];
@@ -291,42 +364,6 @@ var config  = {
           });
         }
       },
-      "input": async function (e) {
-        if (e.target) {
-          const suggestions = document.querySelector(".suggestions .suggestion-box");
-          const userinput = document.getElementById("userinput");
-          const loader = suggestions.querySelector("svg");
-          /*  */
-          config.storage.write("usertext", e.target.value);
-          /*  */
-          if (e.target.value) {
-            try {
-              const error = document.querySelector(".container .footer .error");
-              /*  */
-              if (loader) loader.style.display = "block";
-              userinput.textContent = e.target.value;
-              config.app.current.source = userinput.textContent;
-              /*  */
-              const cursor = e.target.selectionStart;
-              const lints = await config.app.worker.lint(config.app.current.source);
-              /*  */
-              error.textContent = '';
-              suggestions.textContent = '';
-              if (loader) loader.style.display = "none";
-              /*  */
-              for (let lint of lints) {
-                config.app.methods.highlight(lint);
-              }
-              /*  */
-              e.target.focus();
-              e.target.setSelectionRange(cursor, cursor);
-            } catch (e) {
-              if (loader) loader.style.display = "none";
-              if (e && e.message) window.alert(e.message);
-            }
-          }
-        }
-      },
       "button": {
         "dismiss": async function (e) {
           if (e.target) {
@@ -335,13 +372,12 @@ var config  = {
             if (target) {
               const classname = target.className;
               const startend = target.getAttribute("startend");
-              const userarea = document.getElementById("userarea");
               /*  */
               if (classname === "suggestion-button") {      
                 target.remove();
                 config.app.current.dismiss.push(startend);
-                await config.app.listener.input({"target": userarea});
-                await new Promise(resolve => window.setTimeout(resolve, 300));
+                await config.app.listener.input({"target": config.elements.userarea}, false);
+                await config.app.methods.wait(300);
               }
             }
           }
@@ -352,32 +388,140 @@ var config  = {
             /*  */
             if (target) {
               const classname = target.className;
+              const problem = target.getAttribute("problem");
               const startend = target.getAttribute("startend");
-              const userarea = document.getElementById("userarea");
-              const userinput = document.getElementById("userinput");
               const replacement = target.getAttribute("replacement");
               /*  */
               if (e.isTrusted === false || classname === "suggestion-button") {
-                const end = startend.split(':')[1];
-                const start = startend.split(':')[0];          
                 const source = config.app.current.source;
+                const end = Number(startend.split(':')[1]);
+                const start = Number(startend.split(':')[0]);          
                 const newtext = source.substring(0, start) + replacement + source.substring(end);
                 /*  */
                 target.remove();
-                userarea.value = newtext;
-                userinput.textContent = newtext;
                 config.app.current.source = newtext;
-                await config.app.listener.input({"target": userarea});
-                await new Promise(resolve => window.setTimeout(resolve, 300));
+                config.elements.userarea.value = newtext;
+                config.elements.userinput.textContent = newtext;
+                config.app.highlights = config.app.highlights.filter(e => e.problem !== problem);
+                /*  */
+                for (let i = 0; i < config.app.highlights.length; i++) {
+                  const highlight = config.app.highlights[i];
+                  const cond_1 = highlight.json.inner.span.end > end;
+                  const cond_2 = highlight.json.inner.span.start > start;
+                  /*  */
+                  if (cond_1 && cond_2) {
+                    highlight.json.inner.span.end += (replacement.length - problem.length);
+                    highlight.json.inner.span.start += (replacement.length - problem.length);
+                    config.app.highlights[i] = highlight;
+                  }
+                }
+                /*  */
+                await config.app.listener.input({"target": config.elements.userarea}, false);
+                await config.app.methods.wait(300);
               }
+            }
+          }
+        }
+      },
+      "input": async function (e, action) {
+        if (e.target) {
+          config.storage.write("usertext", e.target.value);
+          /*  */
+          if (e.target.value) {
+            try {
+              const cursor = e.target.selectionStart;
+              const item = document.createElement("li");
+              /*  */
+              config.elements.logs.textContent = '';
+              config.elements.logs.appendChild(item);
+              config.elements.userinput.textContent = e.target.value;
+              config.app.current.source = config.elements.userinput.textContent;
+              if (config.elements.loader) config.elements.loader.style.display = "block";
+              /*  */
+              if (action) {
+                config.app.highlights = [];
+                /*  */
+                if (config.app.workerlinter) {
+                  item.textContent = "Checking grammar with Harper.js, please wait...";
+                  const lints = await config.app.workerlinter.lint(config.app.current.source);
+                  /*  */
+                  for (let lint of lints) {
+                    config.app.highlights.push({
+                      "engine": "Harper",
+                      "message": lint.message(),
+                      "problem": lint.get_problem_text(),
+                      "json": JSON.parse(lint.to_json())
+                    });
+                  }
+                }
+                /*  */
+                if (config.app.proofreader) {
+                  item.textContent = "Checking grammar with Gemini Nano AI, please wait...";
+                  const proofreads = await config.app.proofreader.proofread(e.target.value);
+                  /*  */
+                  if (proofreads.corrections) {
+                    for (let i = 0; i < proofreads.corrections.length; i++) {
+                      const target = proofreads.corrections[i];
+                      const problem = config.app.current.source.substring(target.startIndex, target.endIndex);
+                      config.app.highlights.push({
+                        "engine": "Gemini",
+                        "problem": problem,
+                        "message": target.explanation || '',
+                        "json": {
+                          "language": "en",
+                          "problem_text": '',
+                          "inner": {
+                            "priority": 0,
+                            "message": '',
+                            "lint_kind": target.type || "Proofreader",
+                            "span": {
+                              "end": target.endIndex,
+                              "start": target.startIndex
+                            },
+                            "suggestions": [
+                              {
+                                "ReplaceWith": [
+                                  target.correction
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      });
+                    }
+                  }
+                }
+              } else {
+                /*  */
+              }
+              /*  */
+              item.textContent = "Grammar check is completed.";
+              if (config.elements.loader) config.elements.loader.style.display = "none";
+              [...config.elements.suggestions.querySelectorAll("[replacement]")].map(e => e.remove());
+              /*  */
+              config.app.highlights = config.app.methods.sort(config.app.highlights);
+              /*  */
+              for (let i = 0; i < config.app.highlights.length; i++) {
+                config.app.methods.highlight(config.app.highlights[i]);
+              }
+              /*  */
+              e.target.focus();
+              e.target.setSelectionRange(cursor, cursor);
+            } catch (e) {
+              if (config.elements.loader) config.elements.loader.style.display = "none";
+              if (e && e.message) window.alert(e.message);
             }
           }
         }
       }
     },
     "methods": {
+      "wait": async function (ms) {
+        await new Promise(resolve => window.setTimeout(resolve, ms));
+      },
       "color": function (priority) {
         let red = 255;
+        /*  */
         priority = Math.max(0, Math.min(priority, 150));
         if (priority <= 100) {
           red = Math.floor(255 - (priority / 100) * 55);
@@ -386,6 +530,87 @@ var config  = {
         }
         /*  */
         return `rgb(${red}, 0, 0)`;
+      },
+      "error": {
+        "builtin": async function (e, m) {
+          config.storage.write("builtin", false);
+          config.elements.builtin.checked = false;
+          /*  */
+          await config.app.methods.wait(300);
+          window.alert(m.join("\n"));
+          e.textContent = m[0];
+          /*  */
+          document.location.reload();
+        }
+      },
+      "sort": function (e) {
+        const groups = new Map();
+        /*  */
+        for (const item of e) {
+          const key = item.problem;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(item);
+        }
+        /*  */
+        for (const group of groups.values()) {
+          group.sort((a, b) => {
+            const a_start = a.json.inner.span.start;
+            const b_start = b.json.inner.span.start;
+            if (a_start !== b_start) return a_start - b_start;
+            /*  */
+            const a_end = a.json.inner.span.end;
+            const b_end = b.json.inner.span.end;
+            return a_end - b_end;
+          });
+        }
+        /*  */
+        const sorted = [...groups.values()].sort((a, b) => {
+          const a_start = a[0].json.inner.span.start;
+          const b_start = b[0].json.inner.span.start;
+          return a_start - b_start;
+        });
+        /*  */
+        return sorted.flat();
+      },
+      "download": {
+        "training": {
+          "data": async function () {
+            const text = [];
+            /*  */
+            if (window.Proofreader) {
+              const args = config.app.options;
+              const item = document.createElement("li");
+              /*  */
+              config.app.highlights = [];
+              config.elements.logs.textContent = '';
+              config.elements.logs.appendChild(item);
+              config.elements.userarea.value = config.app.current.source;
+              config.elements.userinput.textContent = config.app.current.source;
+              if (config.elements.loader) config.elements.loader.style.display = "block";
+              [...config.elements.suggestions.querySelectorAll("[replacement]")].map(e => e.remove());
+              /*  */
+              args.monitor = function (m) {
+                m.addEventListener("downloadprogress", async function (e) {
+                  if (e) {
+                    if (e.loaded === e.total) {
+                      await config.app.methods.wait(300);
+                      document.location.reload();
+                    } else {
+                      const current = (e.loaded * 100).toFixed(2);
+                      item.textContent = `Downloading training data for Gemini Nano AI: ${current}%, please wait...`;
+                    }
+                  }
+                });
+              };
+              /*  */
+              await window.Proofreader.create(args);
+            } else {
+              text.push("The built-in Gemini Nano AI is not activated in your browser.");
+              text.push("Please reload the app and try again.");
+              await config.app.methods.error.builtin(item, text);
+            }
+          }
+        }
       },
       "insert": {
         "span": function (start, end, span) {
@@ -440,27 +665,22 @@ var config  = {
           }
         }
       },
-      "highlight": function (lint) {
+      "highlight": function (e) {
         try {
           const current = {};
           const highlight = {};
-          const message = lint.message();
-          const problem = lint.get_problem_text();
-          const object = JSON.parse(lint.to_json());
-          const suggestions = document.querySelector(".suggestions .suggestion-box");
+          const builtin = config.storage.read("builtin");
           /*  */
           current.index = {};
-          current.problem = problem;
-          current.inner = object.inner;
+          current.inner = e.json.inner;
           current.priority = current.inner.priority;
           current.index.end = current.inner.span.end;
           current.index.start = current.inner.span.start;
           current.startend = current.index.start + ':' + current.index.end;
-          current.target = config.app.current.source.substring(current.index.start, current.index.end);
+          current.problem = e.problem ? e.problem : config.app.current.source.substring(current.index.start, current.index.end);
           /*  */
           if (config.app.current.dismiss.indexOf(current.startend) === -1) {
-            highlight.target = current.problem ? current.problem : current.target;
-            highlight.node = document.createTextNode(highlight.target);
+            highlight.node = document.createTextNode(current.problem);
             highlight.suggestions = current.inner.suggestions.length ? current.inner.suggestions : [{"ReplaceWith": [current.problem]}];
             highlight.span = document.createElement("span");
             /*  */
@@ -472,9 +692,10 @@ var config  = {
             config.app.methods.insert.span(current.index.start, current.index.end, highlight.span);
             /*  */
             for (let i = 0; i < highlight.suggestions.length; i++) {
-              const alternatives = highlight.suggestions[i].ReplaceWith;
-              const replacement = alternatives.join('');
               const kind = current.inner.lint_kind;
+              const type = (kind.charAt(0).toUpperCase() + kind.slice(1));
+              const replacement = highlight.suggestions[i].ReplaceWith.join('');
+              const engine = (e.engine.charAt(0).toUpperCase() + e.engine.slice(1));
               /*  */
               const title = document.createElement("div");
               const button = document.createElement("div");
@@ -483,38 +704,35 @@ var config  = {
               const actions = document.createElement("div");
               const dismiss = document.createElement("div");
               /*  */
-              button.title = message;
+              button.title = e.message;
               title.className = "title";
               reason.className = "reason";
-              accept.className = current.inner.suggestions.length ? "accept" : "accept manual";
-              reason.textContent = current.inner.suggestions.length ? message : message + " Please review and correct manually."
               accept.textContent = "Accept";
               actions.className = "actions";
               dismiss.className = "dismiss";
               dismiss.textContent = "Dismiss";
-              title.textContent = kind + " - " + replacement;
               button.setAttribute("replacement", replacement);
+              button.setAttribute("problem", current.problem);
               button.setAttribute("startend", current.startend);
               button.addEventListener("click", config.app.listener.highlight);
               accept.addEventListener("click", config.app.listener.button.accept);
               dismiss.addEventListener("click", config.app.listener.button.dismiss);
+              accept.className = current.inner.suggestions.length ? "accept" : "accept manual";
+              title.textContent = builtin ? type + ' ' + '(' + engine + ')' + " - " + replacement : type + " - " + replacement;
+              reason.textContent = current.inner.suggestions.length ? e.message : e.message + " Please review and correct manually.";
               /*  */
               button.appendChild(title);
-              button.appendChild(reason);
+              if (e.message) button.appendChild(reason);
               actions.appendChild(accept);
               actions.appendChild(dismiss);
               button.appendChild(actions);
-              suggestions.appendChild(button);
+              config.elements.suggestions.appendChild(button);
             }
-            /*  */
-            const item = document.createElement("li");
-            const error = document.querySelector(".container .footer .error");
-            const text = document.createTextNode(message);
-            item.appendChild(text);
-            error.appendChild(item);
           }
         } catch (e) {
-          if (e && e.message) window.alert(e.message);
+          if (e && e.message) {
+            window.alert(e.message);
+          }
         }
       }
     }

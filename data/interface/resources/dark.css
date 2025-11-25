@@ -2,8 +2,13 @@ html[mode='dark'] {
   color-scheme: dark;
 }
 
-html[mode='dark'] body {
+html[mode='dark'] body,
+html[mode='dark'] .container .footer {
   background-color: #313131;
+}
+
+html[mode='dark'] .container .content .suggestions .toolbar table tr td:hover {
+  background-color: rgb(255 255 255 / 5%);
 }
 
 html[mode='dark'] .container .content .useraction #userinput .highlight:hover,
@@ -11,6 +16,7 @@ html[mode='dark'] .container .content .useraction #userinput .highlight.selected
   color: #000;
 }
 
+html[mode='dark'] .container .footer .logs,
 html[mode='dark'] .container .content .suggestions,
 html[mode='dark'] .container .content .useraction #userarea,
 html[mode='dark'] .container .content .suggestions .suggestion-box {
@@ -18,8 +24,9 @@ html[mode='dark'] .container .content .suggestions .suggestion-box {
 }
 
 html[mode='dark'] body,
-html[mode='dark'] .container .content .suggestions > .title,
+html[mode='dark'] .container .footer .logs li,
 html[mode='dark'] .container .content .useraction #userarea,
+html[mode='dark'] .container .content .suggestions .title .name,
 html[mode='dark'] .container .content .suggestions .suggestion-box .suggestion-button {
   color: #fff;
 }
@@ -42,6 +49,6 @@ html[mode='dark'] .container .content .suggestions .toolbar table tr td svg {
   fill: #fff;
 }
 
-html[mode='dark'] .container .content .suggestions > .title {
+html[mode='dark'] .container .content .suggestions .title .name {
   background-image: url('./icon-dark.png');
 }

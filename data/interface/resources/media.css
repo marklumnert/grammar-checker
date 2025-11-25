@@ -1,27 +1,24 @@
-@media (max-width: 1600px) {
-  .container .content .useraction {
-    width: 75%;
-  }
-  .container .content .suggestions {
-    width: 25%;
-  }
-}
-
 @media (max-width: 1200px) {
-  .container .content .useraction {
-    width: 70%;
-  }
-  .container .content .suggestions {
-    width: 30%;
-  }
-}
-
-@media (max-width: 800px) {
   .container .content .useraction {
     width: 60%;
   }
   .container .content .suggestions {
     width: 40%;
+  }
+}
+
+@media (max-width: 600px) {
+  .container .content .useraction {
+    width: 50%;
+  }
+  .container .content .suggestions {
+    width: 50%;
+  }
+  .container .content .suggestions .title .name {
+    display: none;
+  }
+  .container .content .suggestions .title .builtin {
+    text-align: right;
   }
 }
 
@@ -32,5 +29,9 @@
   .container .content .suggestions > .title {
     text-indent: 12px;
     background-image: none !important;
+  }
+  .container .content .suggestions .suggestion-box {
+    height: calc(100% - 44px);
+    min-height: calc(100% - 44px);
   }
 }

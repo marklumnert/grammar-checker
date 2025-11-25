@@ -19,10 +19,15 @@
           <div class="toolbar">
             <table>
               <tr>
+                <td id="download" title="Download Gemini Nano Training Data">
+                  <svg width="13" height="13" viewBox="0 0 16 16">
+                    <path d="M 7,15.375 2.54,10 C 2.287,9.695 2,9.461 2,9 2,8.375 2.516,8 3,8 H 6 V 1 C 6,0.45 6.45,0 7,0 H 9 C 9.55,0 10,0.45 10,1 V 8 H 13 C 13.484,8 14,8.375 14,9 14,9.461 13.713,9.695 13.46,10 L 9,15.375 C 8.688,15.758 8.445,16 8,16 7.555,16 7.313,15.758 7,15.375 Z"/>
+                  </svg>
+                </td>
                 <td id="start" title="Run the grammar checker">
                   <svg width="13" height="13" viewBox="0 0 32 32">
                     <path d="M 11.015703,0.44 C 9.464397,1.9913062 7.9130912,3.5426123 6.3617853,5.0939184 L 17.324186,16.052676 6.3617853,27.00779 11.015703,31.661706 26.624734,16.052676 Z"/>
-                  </svg>            
+                  </svg>
                 </td>
                 <td id="copy" title="Copy text to the clipboard">
                   <svg width="13" height="13" viewBox="0 0 24 24">
@@ -64,7 +69,16 @@
               </tr>
             </table>
           </div>
-          <div class="title">Grammar Checker Suggestions</div>
+          <div class="title">
+            <table>
+              <tr>
+                <td class="name">Grammar Checker Suggestions</td>
+                <td class="builtin">
+                  <input type="checkbox" id="builtin" title="Add Gemini Nano AI Proofreader">
+                </td>
+              </tr>
+            </table>
+          </div>
           <div class="suggestion-box">
             <svg height="16" viewBox="0 0 120 30" class="loader">
               <circle cx="15" cy="15" r="15">
@@ -82,9 +96,9 @@
             </svg>
           </div>
         </div>
-        <div class="footer">
-          <ul class="error"></ul>
-        </div>
+      </div>
+      <div class="footer">
+        <ul class="logs"></ul>
       </div>
     </div>
     <!-- -->
